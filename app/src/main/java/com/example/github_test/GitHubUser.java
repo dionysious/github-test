@@ -1,6 +1,6 @@
 package com.example.github_test;
 
-public class GitHubRepo {
+public class GitHubUser {
 
     private int id;
     private String name;

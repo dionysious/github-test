@@ -9,12 +9,12 @@ import android.widget.TextView;
 
 import java.util.List;
 
-public class GitHubRepoAdapter extends ArrayAdapter<GitHubRepo> {
+public class GitHubUserAdapter extends ArrayAdapter<GitHubUser> {
 
     private Context context;
-    private List<GitHubRepo> values;
+    private List<GitHubUser> values;
 
-    public GitHubRepoAdapter(Context context, List<GitHubRepo> values) {
+    public GitHubUserAdapter(Context context, List<GitHubUser> values) {
         super(context, R.layout.list_item_pagination, values);
 
         this.context = context;
@@ -33,7 +33,7 @@ public class GitHubRepoAdapter extends ArrayAdapter<GitHubRepo> {
 
         TextView textView = (TextView) row.findViewById(R.id.list_item_pagination_text);
 
-        GitHubRepo item = values.get(position);
+        GitHubUser item = values.get(position);
         String message = item.getName();
         textView.setText(message);
 
