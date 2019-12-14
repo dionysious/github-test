@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">github-test</string>
+    <string name="internet">no internet connection</string>
 </resources>
