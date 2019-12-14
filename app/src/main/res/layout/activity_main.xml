@@ -36,16 +36,7 @@
         android:id="@+id/toolbar"
         android:background="?colorPrimary"/>
 
-    <com.miguelcatalan.materialsearchview.MaterialSearchView
-        android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:id="@+id/searchView"
-        app:searchBackground="?colorPrimary"
-        app:searchBackIcon="@drawable/ic_action_navigation_arrow_back_inverted"
-        app:searchCloseIcon="@drawable/ic_action_navigation_close_inverted"
-        app:searchSuggestionIcon="@drawable/ic_suggestion"
-        android:textColor="#ffffff"
-        android:textColorHint="#ffffff"/>
+
 
     <ListView
         android:layout_width="match_parent"
@@ -53,12 +44,23 @@
         android:layout_below="@id/toolbar"
         android:id="@+id/listView"/>
 
-        <Button
-            android:layout_width="wrap_content"
+        <com.miguelcatalan.materialsearchview.MaterialSearchView
             android:layout_height="wrap_content"
-            android:id="@+id/button1"
-            android:text="Load JSON"
-            />
+            android:layout_width="match_parent"
+            android:id="@+id/searchView"
+            app:searchBackground="?colorPrimary"
+            app:searchBackIcon="@drawable/ic_action_navigation_arrow_back_inverted"
+            app:searchCloseIcon="@drawable/ic_action_navigation_close_inverted"
+            app:searchSuggestionIcon="@drawable/ic_suggestion"
+            android:textColor="#ffffff"
+            android:textColorHint="#ffffff"/>
+
+<!--        <Button-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:id="@+id/button1"-->
+<!--            android:text="Load JSON"-->
+<!--            />-->
     </RelativeLayout>
 
 

@@ -30,7 +30,13 @@ import com.miguelcatalan.materialsearchview.MaterialSearchView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.android.plugins.RxAndroidPlugins;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.subjects.PublishSubject;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -49,19 +55,19 @@ public class MainActivity extends AppCompatActivity {
     LinearLayoutManager linearLayoutManager;
     List<Item> itemList = new ArrayList<Item>();
     RecyclerView.Adapter adapter = null;
-
+    PublishSubject<String> querySearchSubject;
 
     private EndlessRecyclerViewScrollListener scrollListener;
 
 
-//
-//    private static String[] SUGGESTION = new String[]{
-//
-//            "Curry", "Udon", "Karaage"
-//
-//    };
-//
-//    private MaterialSearchView mMaterialSearchView;
+
+    private static String[] SUGGESTION = new String[]{
+
+            "Curry", "Udon", "Karaage"
+
+    };
+
+    private MaterialSearchView mMaterialSearchView;
 
 
 
@@ -70,7 +76,56 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        /* searchQueryObservable = Observable.just().debounce(1, TimeUnit.MILLISECONDS);
+        searchQueryObservable.subscribe(new Observer<Object>() {
+            @Override
+            public void onSubscribe(Disposable d) {
 
+            }
+
+            @Override
+            public void onNext(Object o) {
+                String query = (String) o;
+                Log.d("APP_ENTERS", query);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        }); */
+
+        querySearchSubject = PublishSubject.create();
+        querySearchSubject.debounce(1, TimeUnit.SECONDS).subscribe(new Observer<String>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(String s) {
+                Log.d("APP_CALL", s);
+                itemList.clear();
+                keyword = s;
+                pageNumber = 1;
+                loadJSON();
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
 
 //        initViews();
         recyclerView = findViewById(R.id.recyclerView);
@@ -92,24 +147,24 @@ public class MainActivity extends AppCompatActivity {
         });
 
         initializeRecyclerView();
-
-        Button button1 = findViewById(R.id.button1);
-        button1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                loadJSON();
-            }
-        });
-
-
-
-
-
-//        Toolbar toolbar = findViewById(R.id.toolbar);
-//        setSupportActionBar(toolbar);
-//        toolbar.setTitleTextColor(Color.parseColor("#ffffff"));
 //
-//        mMaterialSearchView = findViewById(R.id.searchView);
+//        Button button1 = findViewById(R.id.button1);
+//        button1.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                loadJSON();
+//            }
+//        });
+//
+//
+
+
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        toolbar.setTitleTextColor(Color.parseColor("#ffffff"));
+
+        mMaterialSearchView = findViewById(R.id.searchView);
 
 //        ################################################################################
 //        ##    For making search Suggestion using the String array called SUGGESTION,  ##
@@ -119,63 +174,58 @@ public class MainActivity extends AppCompatActivity {
 
 //        mMaterialSearchView.setSuggestions(SUGGESTION);
 
-//        final ListView listView = findViewById(R.id.listView);
+        final ListView listView = findViewById(R.id.listView);
 //        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1 , SUGGESTION);
 //        listView.setAdapter(arrayAdapter);
 //
-//        mMaterialSearchView.setOnSearchViewListener(new MaterialSearchView.SearchViewListener() {
-//            @Override
-//            public void onSearchViewShown() {
-//
-//            }
-//
-//            @Override
-//            public void onSearchViewClosed() {
-//
+        mMaterialSearchView.setOnSearchViewListener(new MaterialSearchView.SearchViewListener() {
+            @Override
+            public void onSearchViewShown() {
+
+            }
+
+            @Override
+            public void onSearchViewClosed() {
+
 //                final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1 , SUGGESTION);
 //
 //
 //                listView.setAdapter(arrayAdapter);
-//            }
-//        });
-//
-//        mMaterialSearchView.setOnQueryTextListener(new MaterialSearchView.OnQueryTextListener() {
-//            @Override
-//            public boolean onQueryTextSubmit(String query) {
-//                return false;
-//            }
-//
-//            @Override
-//            public boolean onQueryTextChange(String newText) {
-//                final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1 );
-//
-//                if(newText!= null && !newText.isEmpty()){
-//
-//                    for(String s : SUGGESTION){
-//                        if(s.toLowerCase().contains(newText))
-//                            arrayAdapter.add(s);
-//                    }
-//                }else{
-//                    arrayAdapter.addAll(SUGGESTION);
-//                }
-//
-//                listView.setAdapter(arrayAdapter);
-//
-//                return false;
-//            }
-//        });
+            }
+        });
+
+
+
+
+
+        mMaterialSearchView.setOnQueryTextListener(new MaterialSearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+//                keyword = newText;
+                querySearchSubject.onNext(newText);
+
+                // Log.d("Keyword typed", keyword);
+                // loadJSON();
+                return false;
+            }
+        });
     }
 
-    private void initViews(){
-        pd =  new ProgressDialog(this);
-        pd.setMessage("Fetching users..");
-        pd.setCancelable(false);
-        pd.show();
-        recyclerView = findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
-        recyclerView.smoothScrollToPosition(0);
-//        loadJSON();
-    }
+//    private void initViews(){
+//        pd =  new ProgressDialog(this);
+//        pd.setMessage("Fetching users..");
+//        pd.setCancelable(false);
+//        pd.show();
+//        recyclerView = findViewById(R.id.recyclerView);
+//        recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
+//        recyclerView.smoothScrollToPosition(0);
+////        loadJSON();
+//    }
 
     private void initializeRecyclerView() {
         adapter = new ItemAdapter(itemList, getApplicationContext());
@@ -211,11 +261,17 @@ public class MainActivity extends AppCompatActivity {
             call.enqueue(new Callback<ItemResponse>() {
                 @Override
                 public void onResponse(Call<ItemResponse> call, Response<ItemResponse> response) {
-                    List<Item> items = response.body().getItems();
-                    itemList.addAll(items);
+                    if (response.code() == 200) {
+                        List<Item> items = response.body().getItems();
+                        itemList.addAll(items);
 
 
-                    adapter.notifyDataSetChanged();
+                        adapter.notifyDataSetChanged();
+                    }else if(response.code() == 403){
+                        Toast.makeText(MainActivity.this, "Rate limit Reach, please wait 1 min to make another search", Toast.LENGTH_SHORT).show();
+
+                        adapter.notifyDataSetChanged();
+                    }
 //                    pd.hide();
 
                 }
@@ -239,11 +295,11 @@ public class MainActivity extends AppCompatActivity {
         loadJSON();
     }
 
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        getMenuInflater().inflate(R.menu.menu_main, menu);
-//        MenuItem menuItem = menu.findItem(R.id.searchMenu);
-//        mMaterialSearchView.setMenuItem(menuItem);
-//        return super.onCreateOptionsMenu(menu);
-//    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        MenuItem menuItem = menu.findItem(R.id.searchMenu);
+        mMaterialSearchView.setMenuItem(menuItem);
+        return super.onCreateOptionsMenu(menu);
+    }
 }
