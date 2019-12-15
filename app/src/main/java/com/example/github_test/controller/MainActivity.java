@@ -2,6 +2,7 @@ package com.example.github_test.controller;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -100,7 +101,11 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                querySearchSubject.onNext(newText);
+                if(!newText.isEmpty()) {
+                    querySearchSubject.onNext(newText);
+                }else{
+                    itemList.clear();
+                }
                 return false;
             }
         });
@@ -114,7 +119,11 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onNext(String s) {
+
+                //will clear the list, making user arrive at the start of the page due to changing keyword
                 itemList.clear();
+
+                //the new keyword
                 keyword = s;
                 pageNumber = 1;
                 loadJSON();
@@ -143,7 +152,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void initRecyclerView() {
         adapter = new ItemAdapter(itemList, getApplicationContext());
-        recyclerView.setAdapter(adapter);
+        recyclerView.setAdapter(adapter);DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(),
+                linearLayoutManager.getOrientation());
+        recyclerView.addItemDecoration(dividerItemDecoration);
         swipeContainer.setRefreshing(false);
         scrollListener = new EndlessRecyclerViewScrollListener(linearLayoutManager) {
             @Override
@@ -159,29 +170,36 @@ public class MainActivity extends AppCompatActivity {
         Disconnected = findViewById(R.id.disconnected);
         try {
             Service apiService = Client.getClient().create(Service.class);
+
             //Default search keyword and pagenumber,, just in case. to avoid null object reference when get from api
-            if(keyword == ""){ keyword = "grace"; }
+            if(keyword == ""){ keyword = "pikachu"; }
             if(pageNumber == 0){ pageNumber = 1; }
 
             //getting the itemResponse using getUserList method from the service
             Call<ItemResponse> call = apiService.getUserList(keyword, pageNumber);
             call.enqueue(new Callback<ItemResponse>() {
+
                 //Got Response
                 @Override
                 public void onResponse(Call<ItemResponse> call, Response<ItemResponse> response) {
+
                     //Response success code == 200
                     if (response.code() == 200) {
                         List<Item> items = response.body().getItems();
+
+                        //add the list item ,, if we change pagenumber from loadNextDataFromApi(),, it will only add the list
                         itemList.addAll(items);
                         adapter.notifyDataSetChanged();
                     }
+
                     //Response failed because of rate limit,, response code == 403
                     else if(response.code() == 403){
                         Toast.makeText(MainActivity.this, "Rate limit reached, please wait another minute to make another search", Toast.LENGTH_SHORT).show();
                         adapter.notifyDataSetChanged();
                     }
                 }
-                //Got no response,, usually because of the api or the network connection
+
+                //Got no response,, usually because there's no expected response from api or the network connection
                 @Override
                 public void onFailure(Call<ItemResponse> call, Throwable t) {
                     Log.d("Error", t.getMessage());
@@ -195,11 +213,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    //To load the next page of the api
     private void loadNextDataFromApi(int page) {
         pageNumber++;
         loadJSON();
     }
 
+    //creating the search menu view
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);

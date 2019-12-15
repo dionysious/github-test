@@ -36,14 +36,6 @@
         android:id="@+id/toolbar"
         android:background="?colorPrimary"/>
 
-
-
-    <ListView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/toolbar"
-        android:id="@+id/listView"/>
-
         <com.miguelcatalan.materialsearchview.MaterialSearchView
             android:layout_height="wrap_content"
             android:layout_width="match_parent"

@@ -9,7 +9,7 @@ public class Item {
     @Expose
     private String login;
 
-    @SerializedName("avatar")
+    @SerializedName("avatar_url")
     @Expose
     private String avatarUrl;
 

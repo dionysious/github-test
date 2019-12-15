@@ -32,15 +32,13 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, int i){
-        viewHolder.title.setText(items.get(i).getLogin());
-        viewHolder.githublink1.setText(items.get(i).getHtmlUrl());
+        viewHolder.gitUsername.setText(items.get(i).getLogin());
+        viewHolder.avatarUrl = items.get(i).getAvatarUrl();
 
+        //To convert the avatarUrl into image
         Picasso.get()
                 .load(items.get(i).getAvatarUrl())
-//                .placeholder(R.drawable.load)
                 .into(viewHolder.imageView);
-
-        Log.d("avatarurl", "ini url" +items.get(i).getAvatarUrl());
     }
 
     @Override
@@ -49,15 +47,15 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder{
-        private TextView title, githublink1;
+        private TextView gitUsername;
         private ImageView imageView;
+        String avatarUrl = "";
 
 
 
     public ViewHolder(View view) {
         super(view);
-        title = view.findViewById(R.id.title);
-        githublink1 = view.findViewById(R.id.githublink1);
+        gitUsername = view.findViewById(R.id.title);
         imageView = view.findViewById(R.id.cover);
 
         ///on item click
