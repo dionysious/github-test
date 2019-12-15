@@ -29,20 +29,23 @@ dependencies {
     androidTestImplementation 'androidx.test:runner:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
 
-
+    //search bar animation
     implementation 'com.miguelcatalan:materialsearchview:1.4.0'
 
     // Retrofit & OkHttp
     implementation 'com.squareup.retrofit2:retrofit:2.5.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.5.0'
 
-
+    //
     implementation "androidx.cardview:cardview:1.0.0"
     implementation "androidx.recyclerview:recyclerview:1.1.0"
     implementation "androidx.recyclerview:recyclerview-selection:1.1.0-beta01"
     implementation 'com.github.bumptech.glide:glide:4.10.0'
+
+    //imageUrl
     implementation 'com.squareup.picasso:picasso:2.71828'
 
+    //rxjava for observer
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
     implementation 'io.reactivex.rxjava2:rxjava:2.2.15'
 

@@ -6,16 +6,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import android.app.ProgressDialog;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,9 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import io.reactivex.Observable;
 import io.reactivex.Observer;
-import io.reactivex.android.plugins.RxAndroidPlugins;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.subjects.PublishSubject;
 import retrofit2.Call;
@@ -44,31 +38,19 @@ import retrofit2.Response;
 public class MainActivity extends AppCompatActivity {
 
     public String keyword ="";
-
     public int pageNumber;
 
+    private EndlessRecyclerViewScrollListener scrollListener;
+    private MaterialSearchView mMaterialSearchView;
     private RecyclerView recyclerView;
-    TextView Disconnected;
-    private Item item;
-    ProgressDialog pd;
     private SwipeRefreshLayout swipeContainer;
+
+    TextView Disconnected;
     LinearLayoutManager linearLayoutManager;
-    List<Item> itemList = new ArrayList<Item>();
-    RecyclerView.Adapter adapter = null;
     PublishSubject<String> querySearchSubject;
 
-    private EndlessRecyclerViewScrollListener scrollListener;
-
-
-
-    private static String[] SUGGESTION = new String[]{
-
-            "Curry", "Udon", "Karaage"
-
-    };
-
-    private MaterialSearchView mMaterialSearchView;
-
+    List<Item> itemList = new ArrayList<Item>();
+    RecyclerView.Adapter adapter = null;
 
 
     @Override
@@ -76,66 +58,21 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        /* searchQueryObservable = Observable.just().debounce(1, TimeUnit.MILLISECONDS);
-        searchQueryObservable.subscribe(new Observer<Object>() {
-            @Override
-            public void onSubscribe(Disposable d) {
 
-            }
-
-            @Override
-            public void onNext(Object o) {
-                String query = (String) o;
-                Log.d("APP_ENTERS", query);
-            }
-
-            @Override
-            public void onError(Throwable e) {
-
-            }
-
-            @Override
-            public void onComplete() {
-
-            }
-        }); */
-
-        querySearchSubject = PublishSubject.create();
-        querySearchSubject.debounce(1, TimeUnit.SECONDS).subscribe(new Observer<String>() {
-            @Override
-            public void onSubscribe(Disposable d) {
-
-            }
-
-            @Override
-            public void onNext(String s) {
-                Log.d("APP_CALL", s);
-                itemList.clear();
-                keyword = s;
-                pageNumber = 1;
-                loadJSON();
-            }
-
-            @Override
-            public void onError(Throwable e) {
-
-            }
-
-            @Override
-            public void onComplete() {
-
-            }
-        });
-
-//        initViews();
         recyclerView = findViewById(R.id.recyclerView);
         linearLayoutManager= new LinearLayoutManager(getApplicationContext());
 
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.smoothScrollToPosition(0);
 
-        swipeContainer = findViewById(R.id.swipeContainer);
+        initViews();
 
+        initRecyclerView();
+
+    }
+
+    private void initSwipeContainer(){
+        swipeContainer = findViewById(R.id.swipeContainer);
         swipeContainer.setColorSchemeResources(android.R.color.holo_orange_dark);
         swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -145,59 +82,16 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+    }
 
-        initializeRecyclerView();
-//
-//        Button button1 = findViewById(R.id.button1);
-//        button1.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                loadJSON();
-//            }
-//        });
-//
-//
-
-
-
+    private void initToolbar(){
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitleTextColor(Color.parseColor("#ffffff"));
+    }
 
+    private void initMaterialSearchView(){
         mMaterialSearchView = findViewById(R.id.searchView);
-
-//        ################################################################################
-//        ##    For making search Suggestion using the String array called SUGGESTION,  ##
-//        ##    could be utilize into auto suggestion based on input?                   ##
-//        ##    maybe additional feature if the main feature finish                     ##
-//        ################################################################################
-
-//        mMaterialSearchView.setSuggestions(SUGGESTION);
-
-        final ListView listView = findViewById(R.id.listView);
-//        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1 , SUGGESTION);
-//        listView.setAdapter(arrayAdapter);
-//
-        mMaterialSearchView.setOnSearchViewListener(new MaterialSearchView.SearchViewListener() {
-            @Override
-            public void onSearchViewShown() {
-
-            }
-
-            @Override
-            public void onSearchViewClosed() {
-
-//                final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1 , SUGGESTION);
-//
-//
-//                listView.setAdapter(arrayAdapter);
-            }
-        });
-
-
-
-
-
         mMaterialSearchView.setOnQueryTextListener(new MaterialSearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -206,82 +100,93 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextChange(String newText) {
-//                keyword = newText;
                 querySearchSubject.onNext(newText);
-
-                // Log.d("Keyword typed", keyword);
-                // loadJSON();
                 return false;
             }
         });
     }
 
-//    private void initViews(){
-//        pd =  new ProgressDialog(this);
-//        pd.setMessage("Fetching users..");
-//        pd.setCancelable(false);
-//        pd.show();
-//        recyclerView = findViewById(R.id.recyclerView);
-//        recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
-//        recyclerView.smoothScrollToPosition(0);
-////        loadJSON();
-//    }
+    private void initQuerySearchSubject(){
+        querySearchSubject = PublishSubject.create();
+        querySearchSubject.debounce(1, TimeUnit.SECONDS).subscribe(new Observer<String>() {
+            @Override
+            public void onSubscribe(Disposable d) {}
 
-    private void initializeRecyclerView() {
+            @Override
+            public void onNext(String s) {
+                itemList.clear();
+                keyword = s;
+                pageNumber = 1;
+                loadJSON();
+            }
+
+            @Override
+            public void onError(Throwable e) {}
+
+            @Override
+            public void onComplete() {}
+        });
+    }
+
+    private void initViews(){
+
+        initSwipeContainer();
+
+        initToolbar();
+
+        initMaterialSearchView();
+
+        initQuerySearchSubject();
+
+
+    }
+
+    private void initRecyclerView() {
         adapter = new ItemAdapter(itemList, getApplicationContext());
         recyclerView.setAdapter(adapter);
-
-        // recyclerView.smoothScrollToPosition(0);
         swipeContainer.setRefreshing(false);
-
         scrollListener = new EndlessRecyclerViewScrollListener(linearLayoutManager) {
             @Override
             public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
                 loadNextDataFromApi(page);
             }
         };
-
         recyclerView.addOnScrollListener(scrollListener);
     }
+
 
     private void loadJSON(){
         Disconnected = findViewById(R.id.disconnected);
         try {
-            Client client = new Client();
-            Service apiService =
-                    Client.getClient().create(Service.class);
-            if(keyword == ""){
-                keyword = "grace";
-            }
-            if(pageNumber == 0){
-                pageNumber = 1;
-            }
-            Call<ItemResponse> call = apiService.getUserList(keyword, pageNumber);
+            Service apiService = Client.getClient().create(Service.class);
+            //Default search keyword and pagenumber,, just in case. to avoid null object reference when get from api
+            if(keyword == ""){ keyword = "grace"; }
+            if(pageNumber == 0){ pageNumber = 1; }
 
+            //getting the itemResponse using getUserList method from the service
+            Call<ItemResponse> call = apiService.getUserList(keyword, pageNumber);
             call.enqueue(new Callback<ItemResponse>() {
+                //Got Response
                 @Override
                 public void onResponse(Call<ItemResponse> call, Response<ItemResponse> response) {
+                    //Response success code == 200
                     if (response.code() == 200) {
                         List<Item> items = response.body().getItems();
                         itemList.addAll(items);
-
-
-                        adapter.notifyDataSetChanged();
-                    }else if(response.code() == 403){
-                        Toast.makeText(MainActivity.this, "Rate limit Reach, please wait 1 min to make another search", Toast.LENGTH_SHORT).show();
-
                         adapter.notifyDataSetChanged();
                     }
-//                    pd.hide();
-
+                    //Response failed because of rate limit,, response code == 403
+                    else if(response.code() == 403){
+                        Toast.makeText(MainActivity.this, "Rate limit reached, please wait another minute to make another search", Toast.LENGTH_SHORT).show();
+                        adapter.notifyDataSetChanged();
+                    }
                 }
-
+                //Got no response,, usually because of the api or the network connection
                 @Override
                 public void onFailure(Call<ItemResponse> call, Throwable t) {
                     Log.d("Error", t.getMessage());
                     Toast.makeText(MainActivity.this, t.toString(), Toast.LENGTH_SHORT).show();
                     Disconnected.setVisibility(View.VISIBLE);
-//                    pd.hide();
                 }
             });
         }catch (Exception e){
