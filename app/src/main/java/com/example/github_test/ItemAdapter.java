@@ -1,6 +1,7 @@
 package com.example.github_test;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,8 +37,10 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
 
         Picasso.get()
                 .load(items.get(i).getAvatarUrl())
-                .placeholder(R.drawable.load)
+//                .placeholder(R.drawable.load)
                 .into(viewHolder.imageView);
+
+        Log.d("avatarurl", "ini url" +items.get(i).getAvatarUrl());
     }
 
     @Override
