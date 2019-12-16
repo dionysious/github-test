@@ -38,14 +38,14 @@
 
         <com.miguelcatalan.materialsearchview.MaterialSearchView
             android:layout_height="wrap_content"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:id="@+id/searchView"
-            app:searchBackground="?colorPrimary"
             app:searchBackIcon="@drawable/ic_action_navigation_arrow_back_inverted"
             app:searchCloseIcon="@drawable/ic_action_navigation_close_inverted"
             app:searchSuggestionIcon="@drawable/ic_suggestion"
-            android:textColor="#ffffff"
-            android:textColorHint="#ffffff"/>
+            android:textColor="#000000"
+            android:textColorHint="#adadad"
+            android:hint="Search Github users"/>
 
     </RelativeLayout>
 

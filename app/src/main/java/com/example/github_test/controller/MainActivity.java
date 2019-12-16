@@ -38,8 +38,8 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
-    public String keyword ="";
-    public int pageNumber;
+    public String keyword ="", prevKeyword = "";
+    public int pageNumber, prevResponseLength;
 
     private EndlessRecyclerViewScrollListener scrollListener;
     private MaterialSearchView mMaterialSearchView;
@@ -78,9 +78,12 @@ public class MainActivity extends AppCompatActivity {
         swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                loadJSON();
+                itemList.clear();
                 Toast.makeText(MainActivity.this,"Refreshed",Toast.LENGTH_SHORT).show();
-
+                loadJSON();
+                if (swipeContainer.isRefreshing()) {
+                    swipeContainer.setRefreshing(false);
+                }
             }
         });
     }
@@ -88,7 +91,6 @@ public class MainActivity extends AppCompatActivity {
     private void initToolbar(){
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        toolbar.setTitleTextColor(Color.parseColor("#ffffff"));
     }
 
     private void initMaterialSearchView(){
@@ -105,12 +107,14 @@ public class MainActivity extends AppCompatActivity {
                     querySearchSubject.onNext(newText);
                 }else{
                     itemList.clear();
+                    prevKeyword = keyword;
                 }
                 return false;
             }
         });
     }
 
+    //used for debouncing
     private void initQuerySearchSubject(){
         querySearchSubject = PublishSubject.create();
         querySearchSubject.debounce(1, TimeUnit.SECONDS).subscribe(new Observer<String>() {
@@ -139,6 +143,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void initViews(){
 
+        //refreshing feature by pulling the list bellow from the top of the list
         initSwipeContainer();
 
         initToolbar();
@@ -171,10 +176,6 @@ public class MainActivity extends AppCompatActivity {
         try {
             Service apiService = Client.getClient().create(Service.class);
 
-            //Default search keyword and pagenumber,, just in case. to avoid null object reference when get from api
-            if(keyword == ""){ keyword = "pikachu"; }
-            if(pageNumber == 0){ pageNumber = 1; }
-
             //getting the itemResponse using getUserList method from the service
             Call<ItemResponse> call = apiService.getUserList(keyword, pageNumber);
             call.enqueue(new Callback<ItemResponse>() {
@@ -185,11 +186,23 @@ public class MainActivity extends AppCompatActivity {
 
                     //Response success code == 200
                     if (response.code() == 200) {
-                        List<Item> items = response.body().getItems();
 
-                        //add the list item ,, if we change pagenumber from loadNextDataFromApi(),, it will only add the list
-                        itemList.addAll(items);
-                        adapter.notifyDataSetChanged();
+                        //check whether there is response but return empty user
+                        if(!prevKeyword.equals(keyword)  && prevResponseLength == response.body().getItems().size()){
+                            itemList.clear();
+                            adapter.notifyDataSetChanged();
+                            Toast.makeText(MainActivity.this, "Please use another keyword to search for user", Toast.LENGTH_SHORT ).show();
+                        }
+
+                        //there is response and there is / are several user(s)
+                        else{
+                            List<Item> items = response.body().getItems();
+
+                            //add the list item ,, if we change pagenumber from loadNextDataFromApi(),, it will only add the list
+                            itemList.addAll(items);
+                            adapter.notifyDataSetChanged();
+                            prevKeyword = keyword;
+                        }
                     }
 
                     //Response failed because of rate limit,, response code == 403
