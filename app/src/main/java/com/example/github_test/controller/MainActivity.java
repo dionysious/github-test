@@ -72,21 +72,21 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void initSwipeContainer(){
-        swipeContainer = findViewById(R.id.swipeContainer);
-        swipeContainer.setColorSchemeResources(android.R.color.holo_orange_dark);
-        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                itemList.clear();
-                Toast.makeText(MainActivity.this,"Refreshed",Toast.LENGTH_SHORT).show();
-                loadJSON();
-                if (swipeContainer.isRefreshing()) {
-                    swipeContainer.setRefreshing(false);
-                }
-            }
-        });
-    }
+//    private void initSwipeContainer(){
+//        swipeContainer = findViewById(R.id.swipeContainer);
+//        swipeContainer.setColorSchemeResources(android.R.color.holo_orange_dark);
+//        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+//            @Override
+//            public void onRefresh() {
+//                itemList.clear();
+//                Toast.makeText(MainActivity.this,"Refreshed",Toast.LENGTH_SHORT).show();
+//                loadJSON();
+//                if (swipeContainer.isRefreshing()) {
+//                    swipeContainer.setRefreshing(false);
+//                }
+//            }
+//        });
+//    }
 
     private void initToolbar(){
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -144,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
     private void initViews(){
 
         //refreshing feature by pulling the list bellow from the top of the list
-        initSwipeContainer();
+//        initSwipeContainer();
 
         initToolbar();
 
@@ -160,7 +160,6 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(),
                 linearLayoutManager.getOrientation());
         recyclerView.addItemDecoration(dividerItemDecoration);
-        swipeContainer.setRefreshing(false);
         scrollListener = new EndlessRecyclerViewScrollListener(linearLayoutManager) {
             @Override
             public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
